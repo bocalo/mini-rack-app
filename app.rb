@@ -4,47 +4,32 @@ class App
 
   def call(env)
     @request = Rack::Request.new(env)
-    response
-    [status, headers, body]
+    handle_request
   end
 
   private
 
-  def response
-    return wrong_path unless @request.path_info == '/time'
+  def handle_request
+    return response(404, 'Page not found') unless @request.path_info == '/time'
 
     @formatter = TimeFormatter.new(@request.params)
     @formatter.check_format
-    return unknown_format unless @formatter.success?
-
-    formatted_time
-  end
-
-  def status
-    @status_code
+    if @formatter.success?
+      status = 200
+      body = @formatter.time
+    else
+      status = 400
+      body = @formatter.error
+    end
+    response(status, body)
   end
 
   def headers
     { 'Content-Type' => 'text/plain' }
   end
 
-  def body
-    ["#{@message}"]
-  end
-
-  def formatted_time
-    @status_code = 200
-    @message = @formatter.time
-  end
-
-  def unknown_format
-    @status_code = 400
-    @message = "Unknown time format"
-  end
-
-  def wrong_path
-    @status_code = 404
-    @message = 'Page not found'
+  def response(status, body)
+    Rack::Response.new(body, status, headers).finish
   end
 end
 
