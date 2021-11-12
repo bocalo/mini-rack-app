@@ -3,23 +3,25 @@ require_relative 'time_formatter'
 class App
 
   def call(env)
-    @request = Rack::Request.new(env)
-    handle_request
+    request = Rack::Request.new(env)
+    if request.path_info == '/time'
+      handle_request(request) 
+    else
+      response(404, 'Page not found')
+    end
   end
 
   private
 
-  def handle_request
-    return response(404, 'Page not found') unless @request.path_info == '/time'
-
-    @formatter = TimeFormatter.new(@request.params)
-    @formatter.check_format
-    if @formatter.success?
+  def handle_request(request)
+    formatter = TimeFormatter.new(request.params)
+    formatter.check_format
+    if formatter.success?
       status = 200
-      body = @formatter.time
+      body = formatter.time
     else
       status = 400
-      body = @formatter.error
+      body = formatter.error
     end
     response(status, body)
   end
