@@ -18,7 +18,8 @@ class App
     formatter.check_format
     if formatter.success?
       status = 200
-      body = formatter.time
+      #body = formatter.time
+      body = formatter.check_format
     else
       status = 400
       body = formatter.error
